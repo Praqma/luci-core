@@ -1,0 +1,18 @@
+#! /bin/sh
+
+# Execute a Docker command with a name docker machine as host
+# Usage: dm <docker machine name> <docker command>
+
+swarm=''
+name=$1
+shift
+
+if [ $name = '--swarm' ] ; then
+   name=$1
+   shift
+   swarm='--swarm'
+fi
+
+config=$(docker-machine config $swarm $name)
+
+exec docker $config "$@"

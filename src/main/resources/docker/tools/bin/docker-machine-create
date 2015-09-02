@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# script to create docker machine with meaningful default parameters
+
+export OS_TENANT_NAME=$OS_PROJECT_NAME
+export OS_DOMAIN_NAME=$ZETTA_DOMAIN_NAME
+
+docker-machine -D create --driver openstack \
+ --openstack-flavor-id $ZETTA_FLAVOR_ID \
+ --openstack-image-id d0a89aa8-9644-408d-a023-4dcc1148ca01 \
+ --openstack-floatingip-pool Public \
+ --openstack-ssh-user ubuntu \
+ --openstack-net-name Private \
+ --openstack-sec-groups default,DockerAPI \
+ "$@"
+

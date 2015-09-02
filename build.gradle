@@ -1,0 +1,48 @@
+plugins {
+    id "com.jfrog.bintray" version "1.2"
+}
+
+apply plugin: 'idea'
+apply plugin: 'groovy'
+
+repositories {
+    jcenter()
+}
+
+group = 'net.praqma.luci'
+version = '0.1'
+
+dependencies {
+    compile gradleApi()
+    // Depend on same groovy version as Gradle is using. Don't use localGroovy() since
+    // groovy is transitive dependencies of gpars, and we don't want it twice
+    compile "org.codehaus.groovy:groovy-all:${groovy.lang.GroovySystem.version}"
+    compile 'org.yaml:snakeyaml:1.14'
+    compile 'com.google.guava:guava:19.0-rc1'
+    compile 'org.codehaus.gpars:gpars:1.2.1'
+}
+
+test {
+    if (!project.hasProperty('testBuildSrc') || project.testBuildSrc != 'true') {
+        project.logger.lifecycle "Excluding buildSrc tests"
+        exclude '**/*'
+    }
+    testLogging {
+        showStandardStreams = true
+    }
+    // Pass on all luci properties to the test tasks
+    systemProperties System.properties.findAll { String key, value -> key.startsWith('net.praqma.luci')}
+}
+
+bintray {
+    user = project.properties.bintrayUser
+    key = project.properties.bintrayApiKey
+    configurations = ['archives']
+    pkg {
+        repo = 'jars'
+        name = "${group}:luci-core"
+        userOrg = 'praqma'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/Praqma/luci-core.git'
+    }
+}
