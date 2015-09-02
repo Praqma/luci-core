@@ -1,12 +1,9 @@
 package net.praqma.luci.dev
 
 import groovyx.gpars.GParsPool
-import groovyx.gpars.dataflow.DataflowVariable
 import groovyx.gpars.dataflow.Dataflows
-import groovyx.gpars.dataflow.Promise
 import net.praqma.luci.docker.DockerHost
 import net.praqma.luci.docker.DockerHostImpl
-import net.praqma.luci.utils.ClasspathResources
 
 /**
  * Build all docker images for Luci
@@ -95,7 +92,14 @@ class BuildAllImages {
 
     static void main(String[] args) {
         assert args.size() == 1
-        new BuildAllImages(new File(args[0], 'docker')).build()
+
+        boolean doPush = false
+        DockerHost host = DockerHostImpl.default
+        boolean success = new BuildAllImages(new File(args[0], 'docker')).build(host, doPush)
+
+        if (!success) {
+            throw new RuntimeException("Error building images")
+        }
     }
 
 }
