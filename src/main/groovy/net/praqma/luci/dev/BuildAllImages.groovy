@@ -13,10 +13,12 @@ import net.praqma.luci.utils.ClasspathResources
  */
 class BuildAllImages {
 
-    /**
-     * Directory
-     */
     private File dockerImagesDir
+
+    BuildAllImages(File dir) {
+        assert dir != null
+        this.dockerImagesDir = dir
+    }
 
     boolean build(Collection<DockerHost> hosts) {
         hosts.each {
@@ -29,18 +31,11 @@ class BuildAllImages {
         if (dockerHost == null) {
             dockerHost = DockerHostImpl.getDefault()
         }
-        File versionsFile
-        if (System.properties['net.praqma.luci.projectRoot'] != null) {
-            versionsFile = new File(System.properties['net.praqma.luci.projectRoot'], 'buildSrc/src/main/resources/docker/imageVersions.properties')
-        } else {
-            versionsFile = new ClasspathResources().resourceAsFile('docker/imageVersions.properties')
-        }
-
+        File versionsFile = new File(dockerImagesDir, 'imageVersions.properties')
         assert versionsFile.exists()
 
         // Directory containing directory for each image to build
-        File dockerDir = versionsFile.parentFile
-        println "Build images in directory: ${dockerDir}"
+        println "Build images in directory: ${dockerImagesDir}"
 
         Properties props = new Properties()
         versionsFile.withInputStream {
@@ -48,7 +43,7 @@ class BuildAllImages {
         }
 
         Collection<DockerImage> images = props.collect { String key, String version ->
-            File ctxDir = new File(dockerDir, key)
+            File ctxDir = new File(dockerImagesDir, key)
             assert ctxDir.exists()
             new DockerImage(ctxDir, version)
         }
@@ -96,6 +91,11 @@ class BuildAllImages {
         boolean answer = rcs.every { it == 0 }
         println "DONE. Built all images"
         return answer
+    }
+
+    static void main(String[] args) {
+        assert args.size() == 1
+        new BuildAllImages(new File(args[0], 'docker')).build()
     }
 
 }

@@ -4,22 +4,42 @@ plugins {
 
 apply plugin: 'idea'
 apply plugin: 'groovy'
-
-repositories {
-    jcenter()
-}
+apply plugin: 'maven-publish'
 
 group = 'net.praqma.luci'
 version = '0.1'
 
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+task extractDockerImages(type: Copy) {
+    dependsOn jar
+    from zipTree(jar.archivePath)
+    into "${buildDir}/${name}"
+    include 'docker/**'
+}
+
+task buildAllImages(type: JavaExec) {
+    dependsOn extractDockerImages
+    main 'net.praqma.luci.dev.BuildAllImages'
+    args extractDockerImages.destinationDir
+    classpath { sourceSets.main.runtimeClasspath.asPath }
+}
+
 dependencies {
-    compile gradleApi()
     // Depend on same groovy version as Gradle is using. Don't use localGroovy() since
     // groovy is transitive dependencies of gpars, and we don't want it twice
     compile "org.codehaus.groovy:groovy-all:${groovy.lang.GroovySystem.version}"
     compile 'org.yaml:snakeyaml:1.14'
     compile 'com.google.guava:guava:19.0-rc1'
     compile 'org.codehaus.gpars:gpars:1.2.1'
+}
+
+task sourceJar(type: Jar) {
+    classifier 'sources'
+    from sourceSets.main.allSource
 }
 
 test {
@@ -34,15 +54,29 @@ test {
     systemProperties System.properties.findAll { String key, value -> key.startsWith('net.praqma.luci')}
 }
 
+publishing {
+    publications {
+        lib(MavenPublication) {
+            from components.java
+            artifact sourceJar
+
+            artifactId 'luci-core'
+        }
+    }
+}
+
 bintray {
     user = project.properties.bintrayUser
     key = project.properties.bintrayApiKey
-    configurations = ['archives']
+    publications = ['lib']
+    dryRun = false //Whether to run this as dry-run, without deploying
+    publish = false //If version should be auto published after an upload
     pkg {
         repo = 'jars'
         name = "${group}:luci-core"
         userOrg = 'praqma'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/Praqma/luci-core.git'
+        publicDownloadNumbers = true
     }
 }
