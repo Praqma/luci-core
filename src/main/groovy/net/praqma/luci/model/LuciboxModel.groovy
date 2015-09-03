@@ -1,5 +1,6 @@
 package net.praqma.luci.model
 
+import com.google.common.io.Files
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.Memoized
@@ -16,6 +17,8 @@ import static groovyx.gpars.dataflow.Dataflow.task
 
 @CompileStatic
 class LuciboxModel {
+
+    private final File workDir
 
     final String name
 
@@ -41,8 +44,9 @@ class LuciboxModel {
     /** All hosts where this lucibox is having containers */
     private Collection<DockerHost> allHosts = [] as Set
 
-    LuciboxModel(String name) {
+    LuciboxModel(String name, File workDir = null) {
         this.name = name
+        this.workDir = workDir ?: Files.createTempDir()
         service(ServiceEnum.WEBFRONTEND.name)
     }
 
@@ -128,6 +132,7 @@ class LuciboxModel {
         println "Initilizing Lucibox: '${name}'"
         allHosts << dockerHost
         serviceMap.values().each { it.prepare() }
+        workDir.mkdirs()
     }
 
     @CompileDynamic
@@ -137,14 +142,16 @@ class LuciboxModel {
         }
     }
 
-    Containers preStart(File workDir) {
+    private File getDockerComposeFile() {
+        return new File(workDir, 'docker-compose.yml')
+    }
+
+    Containers preStart() {
         Containers containers = new Containers(this)
 
         serviceMap.values().each { it.preStart(this, containers) }
 
-        workDir.mkdirs()
-        File yaml = new File(workDir, 'docker-compose.yml')
-        new FileWriter(yaml).withWriter { Writer w ->
+        new FileWriter(dockerComposeFile).withWriter { Writer w ->
             generateDockerComposeYaml(containers, w)
         }
         return containers
@@ -177,19 +184,19 @@ class LuciboxModel {
      * Bring up this Lucibox.
      */
     @CompileDynamic
-    void bringUp(File workDir) {
+    void bringUp() {
         // Take down any containers that should happend to run, before bringing it up
         // Side effect: It initializes the hosts
         takeDown()
 
-        Containers containers = preStart(workDir)
+        Containers containers = preStart()
 
         auxServices.each { AuxServiceModel aux ->
             println "Setting up aux service: ${aux.serviceName} on ${aux.dockerHost}"
             aux.startService(containers)
         }
 
-        new ExternalCommand(dockerHost).execute('docker-compose', '-f', new File(workDir, 'docker-compose.yml').path,
+        new ExternalCommand(dockerHost).execute('docker-compose', '-f', dockerComposeFile.path,
                 'up', '-d')
 
         println "Lucibox '${name} will use docker hosts: ${allHosts*.asString()}"
@@ -227,7 +234,7 @@ class LuciboxModel {
     }
 
     @CompileDynamic
-    void printInformation(File workDir) {
+    void printInformation() {
         String header = "Lucibox: ${name}"
         println "\n${header}\n${'=' * header.length()}"
         println "Primary host: ${dockerHost.asString()}"

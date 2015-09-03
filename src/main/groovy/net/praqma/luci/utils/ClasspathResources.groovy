@@ -29,6 +29,7 @@ class ClasspathResources {
         if (this.@extractedResoucesDir == null) {
             this.@extractedResoucesDir = Files.createTempDir()
         }
+        this.@extractedResoucesDir.mkdirs()
         return this.@extractedResoucesDir
     }
 
@@ -46,7 +47,6 @@ class ClasspathResources {
             if (stream == null) {
                 throw new IllegalArgumentException("Resouces '${resource}' not found")
             }
-            target.parentFile.mkdirs()
             target.withOutputStream {
                 ByteStreams.copy(stream, it)
             }
