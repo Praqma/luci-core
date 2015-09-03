@@ -43,7 +43,7 @@ class LuciboxModel {
 
     LuciboxModel(String name) {
         this.name = name
-        service ServiceEnum.WEBFRONTEND.name
+        service(ServiceEnum.WEBFRONTEND.name)
     }
 
     void addHost(DockerHost host) {
@@ -130,8 +130,11 @@ class LuciboxModel {
         serviceMap.values().each { it.prepare() }
     }
 
+    @CompileDynamic
     void initializedHosts() {
-        allHosts*.initialize()
+        GParsPool.withPool {
+            allHosts.eachParallel { DockerHost h -> h.initialize() }
+        }
     }
 
     Containers preStart(File workDir) {
@@ -210,6 +213,7 @@ class LuciboxModel {
      * Stop and remove all containers (including data containers) related to this Lucibox.
      */
     void destroy() {
+        initializedHosts()
         removeContainers()
     }
 
