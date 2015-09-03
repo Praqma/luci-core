@@ -35,6 +35,7 @@ dependencies {
     compile 'org.yaml:snakeyaml:1.14'
     compile 'com.google.guava:guava:19.0-rc1'
     compile 'org.codehaus.gpars:gpars:1.2.1'
+    testCompile 'junit:junit:4.12'
 }
 
 task sourceJar(type: Jar) {
@@ -43,10 +44,6 @@ task sourceJar(type: Jar) {
 }
 
 test {
-    if (!project.hasProperty('testBuildSrc') || project.testBuildSrc != 'true') {
-        project.logger.lifecycle "Excluding buildSrc tests"
-        exclude '**/*'
-    }
     testLogging {
         showStandardStreams = true
     }
