@@ -26,11 +26,11 @@ class ClasspathResources {
     }
 
     static File getExtractedResoucesDir() {
-        if (this.@extractedResoucesDir == null) {
-            this.@extractedResoucesDir = Files.createTempDir()
+        if (extractedResoucesDir == null) {
+            extractedResoucesDir = Files.createTempDir()
         }
-        this.@extractedResoucesDir.mkdirs()
-        return this.@extractedResoucesDir
+        extractedResoucesDir.mkdirs()
+        return extractedResoucesDir
     }
 
     File resourceAsFile(String resource, String name = null) {
@@ -38,7 +38,7 @@ class ClasspathResources {
             // Use last part of resource as name
             name = new File(resource).name
         }
-        File target = new File(extractedResoucesDir, name)
+        File target = new File(getExtractedResoucesDir(), name)
         if (!target.exists()) {
             // When running expanded (i.e. not from jar we could retrieve the resource
             // as url and get to the file directly. But it is really the special
