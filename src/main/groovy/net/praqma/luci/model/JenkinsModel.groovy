@@ -135,7 +135,7 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
         super.prepare()
         staticSlaves.values()*.prepare()
         actions.each { it() }
-        initFiles(new ClasspathResources(JenkinsModel.classLoader).resourceAsFile('scripts/luci-init.groovy') as File)
+        initFiles(new ClasspathResources().resourceAsFile('scripts/luci-init.g', 'luci-init.groovy') as File)
     }
 
     @Override

@@ -10,7 +10,7 @@ class ClasspathResources {
 
     private ClassLoader classLoader
 
-    File extractedResoucesDir = Files.createTempDir()
+    static File extractedResoucesDir = Files.createTempDir()
 
     ClasspathResources(ClassLoader classLoader = null) {
         if (classLoader == null) {
@@ -19,18 +19,24 @@ class ClasspathResources {
         this.classLoader = classLoader
     }
 
-    File resourceAsFile(String resource) {
-        // When running expanded (i.e. not from jar we could retrieve the resource
-        // as url and get to the file directly. But it is really the special
-        // case to run expanded to lets always get resource and read it
-        InputStream stream = classLoader.getResourceAsStream(resource)
-        if (stream == null) {
-            throw new IllegalArgumentException("Resouces '${resource}' not found")
+    File resourceAsFile(String resource, String name = null) {
+        if (name == null) {
+            // Use last part of resource as name
+            name = new File(resource).name
         }
-        File f = File.createTempFile('luci', 'res', extractedResoucesDir)
-        f.withOutputStream {
-            ByteStreams.copy(stream, it)
+        File target = new File(extractedResoucesDir, name)
+        if (!target.exists()) {
+            // When running expanded (i.e. not from jar we could retrieve the resource
+            // as url and get to the file directly. But it is really the special
+            // case to run expanded to lets always get resource and read it
+            InputStream stream = classLoader.getResourceAsStream(resource)
+            if (stream == null) {
+                throw new IllegalArgumentException("Resouces '${resource}' not found")
+            }
+            target.withOutputStream {
+                ByteStreams.copy(stream, it)
+            }
         }
-        return f
+        return target
     }
 }
