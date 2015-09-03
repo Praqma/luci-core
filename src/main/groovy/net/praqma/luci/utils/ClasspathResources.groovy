@@ -2,21 +2,34 @@ package net.praqma.luci.utils
 
 import com.google.common.io.ByteStreams
 import com.google.common.io.Files
+import groovy.transform.CompileStatic
 
 /**
  * Helper class to work with resources found on classpath
  */
+@CompileStatic
 class ClasspathResources {
 
     private ClassLoader classLoader
 
-    static File extractedResoucesDir = Files.createTempDir()
+    static File extractedResoucesDir
+
+    ClasspathResources(Class<?> cls) {
+        this(cls.classLoader)
+    }
 
     ClasspathResources(ClassLoader classLoader = null) {
         if (classLoader == null) {
             classLoader = Thread.currentThread().contextClassLoader
         }
         this.classLoader = classLoader
+    }
+
+    static File getExtractedResoucesDir() {
+        if (this.@extractedResoucesDir == null) {
+            this.@extractedResoucesDir = Files.createTempDir()
+        }
+        return this.@extractedResoucesDir
     }
 
     File resourceAsFile(String resource, String name = null) {
@@ -33,6 +46,7 @@ class ClasspathResources {
             if (stream == null) {
                 throw new IllegalArgumentException("Resouces '${resource}' not found")
             }
+            target.parentFile.mkdirs()
             target.withOutputStream {
                 ByteStreams.copy(stream, it)
             }
