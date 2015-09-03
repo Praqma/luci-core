@@ -1,12 +1,9 @@
 package net.praqma.luci.docker
 
+import net.praqma.luci.test.TestDockerHosts
 import org.junit.Test
 
 class DockerHostTest {
-
-    static DockerHost getHost() {
-        return DockerHostImpl.default
-    }
 
     @Test
     void testParseEnvVar() {
@@ -27,10 +24,9 @@ export DOCKER_MACHINE_NAME="lucibox"
 
     @Test
     void testBoundPorts() {
-        DockerHost h = host
-        h.initialize()
-        assert h != null
+        DockerHost h = TestDockerHosts.primary
         h.boundPorts()
+        // TODO assert something
     }
 }
 
