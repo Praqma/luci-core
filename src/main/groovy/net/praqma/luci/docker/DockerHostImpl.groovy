@@ -2,7 +2,7 @@ package net.praqma.luci.docker
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-import net.praqma.luci.docker.net.praqma.luci.docker.hosts.DockerMachineHost
+import net.praqma.luci.docker.hosts.DockerMachineHost
 
 @CompileStatic
 class DockerHostImpl implements DockerHost {

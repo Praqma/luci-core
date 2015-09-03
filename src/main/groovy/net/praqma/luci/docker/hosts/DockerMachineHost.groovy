@@ -1,8 +1,7 @@
-package net.praqma.luci.docker.net.praqma.luci.docker.hosts
+package net.praqma.luci.docker.hosts
 
 import net.praqma.luci.docker.DockerHost
 import net.praqma.luci.docker.DockerHostImpl
-import net.praqma.luci.docker.DockerMachineFactory
 import net.praqma.luci.utils.ExternalCommand
 
 class DockerMachineHost implements DockerHost {

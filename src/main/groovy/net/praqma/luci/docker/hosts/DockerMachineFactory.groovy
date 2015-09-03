@@ -1,8 +1,8 @@
-package net.praqma.luci.docker
+package net.praqma.luci.docker.hosts
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.TemplateEngine
-import net.praqma.luci.docker.net.praqma.luci.docker.hosts.DockerMachineHost
+import net.praqma.luci.docker.DockerHost
 import net.praqma.luci.utils.ExternalCommand
 
 /**
@@ -30,7 +30,7 @@ class DockerMachineFactory {
             cmd << expanded
         }
         StringBuffer err = "" << ""
-        println "Attempting to create machine: '${machineName}'"
+        println "Creating machine: '${machineName}'"
         int rc = new ExternalCommand().execute(*cmd, err: err)
         if (rc == 0) {
             return new DockerMachineHost(machineName)
