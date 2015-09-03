@@ -38,6 +38,10 @@ trait AuxServiceModel {
 
         startCmd.addAll(map.command)
 
-        new ExternalCommand(me.dockerHost).execute(startCmd as String[])
+        StringBuffer err = "" << ""
+        int rc = new ExternalCommand(me.dockerHost).execute(startCmd as String[], err: err)
+        if (rc != 0) {
+            throw new RuntimeException("Failed to start service: ${me.serviceName}. Error: ${err.toString()}")
+        }
     }
 }
