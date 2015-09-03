@@ -12,7 +12,7 @@ import net.praqma.luci.utils.ExternalCommand
  */
 class Containers {
 
-    private Map<String, Container> containers = [:]
+    private Map<Tuple, Container> containers = [:]
 
     private LuciboxModel box
 
@@ -25,7 +25,7 @@ class Containers {
     }
 
     void addContainer(Container con) {
-        containers[con.luciName] = con
+        containers[new Tuple(con.host, con.luciName)] = con
     }
 
     /*
@@ -124,12 +124,13 @@ class Containers {
     }
 
     private Container createContainerHelper(Map<String, ?> args, boolean createNew, DockerHost host, String luciName, Images image, ContainerKind kind, Closure initBlock = null) {
+        Tuple key = new Tuple(host, luciName)
         if (createNew) {
             Container container = new Container(image, box, host, kind, luciName)
             container.remove()
-            containers.remove(luciName)
+            containers.remove(key)
         }
-        if (containers[luciName] == null) {
+        if (containers[key] == null) {
             Container container = new Container(image, box, host, kind, luciName)
             if (args.volumes) {
                 if (args.volumes instanceof String) {

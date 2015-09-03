@@ -34,6 +34,10 @@ class Container {
         return "${box.name}__${luciName}"
     }
 
+    DockerHost getHost() {
+        return ec.dockerHost
+    }
+    
     Volume volume(String v) {
         volumes << v
         return new Volume(v)
