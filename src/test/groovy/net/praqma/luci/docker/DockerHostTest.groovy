@@ -5,7 +5,7 @@ import org.junit.Test
 class DockerHostTest {
 
     static DockerHost getHost() {
-        return DockerHostImpl.getDefault()
+        return DockerHostImpl.default
     }
 
     @Test
@@ -28,6 +28,7 @@ export DOCKER_MACHINE_NAME="lucibox"
     @Test
     void testBoundPorts() {
         DockerHost h = host
+        h.initialize()
         assert h != null
         h.boundPorts()
     }
