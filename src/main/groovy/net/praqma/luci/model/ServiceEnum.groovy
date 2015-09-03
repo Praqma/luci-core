@@ -1,7 +1,9 @@
 package net.praqma.luci.model
 
+import groovy.transform.CompileStatic
 import net.praqma.luci.docker.Images
 
+@CompileStatic
 enum ServiceEnum {
 
     WEBFRONTEND(NginxModel, Images.SERVICE_NGINX),
