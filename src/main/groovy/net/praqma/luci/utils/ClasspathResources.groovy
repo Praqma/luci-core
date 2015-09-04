@@ -18,10 +18,11 @@ class ClasspathResources {
         this(cls.classLoader)
     }
 
-    ClasspathResources(ClassLoader classLoader = null) {
-        if (classLoader == null) {
-            classLoader = Thread.currentThread().contextClassLoader
-        }
+    ClasspathResources() {
+        this(Thread.currentThread().contextClassLoader)
+    }
+
+    ClasspathResources(ClassLoader classLoader) {
         this.classLoader = classLoader
     }
 
