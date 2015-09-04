@@ -6,7 +6,7 @@ import net.praqma.luci.docker.ContainerKind
 import net.praqma.luci.docker.Containers
 import net.praqma.luci.docker.DockerHost
 
-@CompileStatic
+
 abstract class BaseServiceModel {
 
     String dockerImage
@@ -26,9 +26,10 @@ abstract class BaseServiceModel {
     boolean includeInWebfrontend = false
 
     Map buildComposeMap(Containers containers) {
+        assert getDockerHost() != null
         List<String> volumes_from = []
         if (useDataContainer == null ? box.useDataContainer : useDataContainer) {
-            volumes_from << containers.storage(dockerHost).name
+            volumes_from << containers.storage(getDockerHost()).name
         }
         Map answer = [
                 image         : dockerImage,
@@ -69,7 +70,8 @@ abstract class BaseServiceModel {
     }
 
     DockerHost getDockerHost() {
-        return this.@dockerHost ?: box.dockerHost
+       DockerHost d =  this.@dockerHost ?: box.dockerHost
+       return d
     }
 
     String getContainerName() {

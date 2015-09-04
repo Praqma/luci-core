@@ -124,7 +124,10 @@ class Containers {
     }
 
     private Container createContainerHelper(Map<String, ?> args, boolean createNew, DockerHost host, String luciName, Images image, ContainerKind kind, Closure initBlock = null) {
+        assert host != null
         Tuple key = new Tuple(host, luciName)
+
+
         if (createNew) {
             Container container = new Container(image, box, host, kind, luciName)
             container.remove()
@@ -141,13 +144,14 @@ class Containers {
                     }
                 }
             }
+
             container.create()
             if (initBlock != null) {
                 initBlock(container)
             }
-            containers[luciName] = container
+            containers[key] = container
         }
-        return containers[luciName]
+        return containers[key]
 
     }
 

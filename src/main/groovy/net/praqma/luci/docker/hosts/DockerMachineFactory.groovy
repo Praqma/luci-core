@@ -26,7 +26,8 @@ class DockerMachineFactory {
         Map<String, String> bindings = [ name: machineName]
         TemplateEngine engine = new SimpleTemplateEngine()
         createArgs.each { String arg ->
-            String expanded = engine.createTemplate(arg).make(bindings).toString()
+	    assert arg != null
+	    String expanded = engine.createTemplate(arg).make(bindings).toString()
             cmd << expanded
         }
         StringBuffer err = "" << ""

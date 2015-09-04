@@ -39,6 +39,12 @@ class LuciboxModel {
 
     DockerHost dockerHost
 
+    void setDockerHost(DockerHost d) {
+        assert d != null
+        this.@dockerHost = d
+
+    }
+
     Integer socatForTlsHackPort = null
 
     /** All hosts where this lucibox is having containers */
