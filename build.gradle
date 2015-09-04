@@ -7,7 +7,7 @@ apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
 group = 'net.praqma.luci'
-version = '0.2'
+version = '0.4-SNAPSHOT'
 
 repositories {
     jcenter()
@@ -66,7 +66,7 @@ bintray {
     key = project.properties.bintrayApiKey
     publications = ['lib']
     dryRun = false //Whether to run this as dry-run, without deploying
-    publish = false //If version should be auto published after an upload
+    publish = true //If version should be auto published after an upload
     pkg {
         repo = 'jars'
         name = "${group}:luci-core"
