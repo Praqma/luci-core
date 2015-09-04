@@ -74,7 +74,7 @@ class DockerMachineFactory {
     DockerHost getOrCreate(String machineName) {
         StringBuffer err = "" << ""
         println "Creating machine: '${machineName}'"
-        int rc = new ExternalCommand().execute(commandLine(machineName, LuciSettings.instance), err: err)
+        int rc = new ExternalCommand().execute(*commandLine(machineName), err: err)
         if (rc == 0) {
             return new DockerMachineHost(machineName)
         } else {
