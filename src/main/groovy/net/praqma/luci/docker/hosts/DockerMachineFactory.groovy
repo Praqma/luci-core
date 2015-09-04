@@ -40,8 +40,14 @@ class DockerMachineFactory {
         this.driver = driver
     }
 
+    /**
+     * Construct the command line for docker-machine to crate the machine
+     * @param machineName Name of machine
+     * @param hideSensitiveData If true sensitive data like password is hidden
+     * @return
+     */
     @VisibleForTesting
-    List<String> commandLine(String machineName) {
+    List<String> commandLine(String machineName, boolean hideSensitiveData = false) {
         Map<String, String> binds = [ name: machineName ]
         binds.putAll(bindings)
         TemplateEngine engine = new SimpleTemplateEngine()
@@ -50,7 +56,14 @@ class DockerMachineFactory {
         List<String> cmd = ['docker-machine']
         if (debug) cmd << '--debug'
         cmd << 'create'
-        cmd.addAll(buildCompleteOptionsMap().collect { key, value -> ["--${key}".toString(), x(value)] }.flatten())
+        Map<String, String> optionMap = buildCompleteOptionsMap()
+        if (hideSensitiveData) {
+            optionMap.keySet().each { String key ->
+                // Assume that data is sensitive if key contains the string 'password'
+                if (key.contains('password')) optionMap[key] = "xxxxxxxx"
+            }
+        }
+        cmd.addAll(optionMap.collect { key, value -> ["--${key}".toString(), x(value)] }.flatten())
         createArgs.each { String arg ->
             assert arg != null
             cmd << x(arg)
