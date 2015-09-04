@@ -10,7 +10,6 @@ group = 'net.praqma.luci'
 version = '0.2'
 
 repositories {
-    mavenLocal()
     jcenter()
 }
 
