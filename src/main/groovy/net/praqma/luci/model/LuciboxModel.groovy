@@ -18,7 +18,7 @@ import static groovyx.gpars.dataflow.Dataflow.task
 @CompileStatic
 class LuciboxModel {
 
-    private final File workDir
+    private File workDir
 
     final String name
 
@@ -44,9 +44,8 @@ class LuciboxModel {
     /** All hosts where this lucibox is having containers */
     private Collection<DockerHost> allHosts = [] as Set
 
-    LuciboxModel(String name, File workDir = null) {
+    LuciboxModel(String name) {
         this.name = name
-        this.workDir = workDir ?: Files.createTempDir()
         service(ServiceEnum.WEBFRONTEND.name)
     }
 
@@ -128,11 +127,12 @@ class LuciboxModel {
      * This method should not make any call to docker host, or even assume
      * there is valid docker hosts configured
      */
-    void initialize() {
+    void initialize(File workDir = null) {
         println "Initilizing Lucibox: '${name}'"
+        this.workDir = workDir ?: Files.createTempDir()
+        this.workDir.mkdirs()
         allHosts << dockerHost
         serviceMap.values().each { it.prepare() }
-        workDir.mkdirs()
     }
 
     @CompileDynamic
