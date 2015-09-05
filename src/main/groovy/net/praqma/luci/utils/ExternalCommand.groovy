@@ -3,13 +3,20 @@ package net.praqma.luci.utils
 import com.google.common.io.ByteStreams
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import groovyx.gpars.GParsPool
+import groovyx.gpars.dataflow.Promise
 import net.praqma.luci.docker.DockerHost
+
+import java.util.concurrent.Future
 
 @CompileStatic
 class ExternalCommand {
 
     /** Docker commands are executed against this docker host */
     final DockerHost dockerHost
+
+    /** These strings will be masked in logging */
+    Collection<String> sensitiveData = []
 
     ExternalCommand(DockerHost dockerHost = null) {
         assert dockerHost == null || dockerHost.uri != null
@@ -21,14 +28,17 @@ class ExternalCommand {
         return execute([:], *cmd)
     }
 
+    @CompileDynamic
     int execute(Map mapArgs, String... cmd) {
         assert cmd.findAll { it == null }.empty
         String c = Binary.known[cmd[0]]?.executable
         if (c) {
             cmd = ([c] + cmd[1..-1])
         }
+        String cmdFormatted
         if (mapArgs.log) {
-            println "CMD: ${cmd.join(' ')}"
+            cmdFormatted = formatCmdForLogging(cmd.toList())
+            println "CMD: ${cmdFormatted}"
         }
         ProcessBuilder pb = new ProcessBuilder(cmd)
         Map<String, String> env = pb.environment()
@@ -47,28 +57,31 @@ class ExternalCommand {
 
         Process process = pb.start()
 
-        Thread t1 = inThread(mapArgs.in != null ? mapArgs.in : System.in, process.outputStream)
-        Thread t2 = outThread(mapArgs.out != null ? mapArgs.out : System.out, process.inputStream)
-        Thread t3 = outThread(mapArgs.err != null ? mapArgs.err : System.err, process.errorStream)
+        GParsPool.withPool(2) {
+            // Handle stdin and stderr async
+            Future stdin = { -> readInput(mapArgs.in != null ? mapArgs.in : null, process.outputStream) }.callAsync()
+            Future stderr = { -> writeOutput(mapArgs.err != null ? mapArgs.err : System.err, process.errorStream) }.callAsync()
 
-        process.waitFor()
-        // wait for t2 and t3 to finish, i.e. all output of the process has been processed
-        t2.join()
-        t3.join()
-        // t1 might still be running waiting for input to be consumed. Close the
-        // stream it is writing to
-        process.outputStream.close()
+            writeOutput(mapArgs.out != null ? mapArgs.out : System.out, process.inputStream)
+            stderr.get() // Wait until all stderr is handled
+
+            process.waitFor()
+            process.outputStream.close()
+            stdin.get()
+        }
 
         int exitValue = process.exitValue()
         if (mapArgs.log) {
-            println "CMD: ${cmd.join(' ')}, exit value: ${exitValue}"
+            println "CMD: ${cmdFormatted}, exit value: ${exitValue}"
         }
         return exitValue
     }
 
-    private Thread inThread(input, OutputStream outputStream) {
-        return Thread.start {
+
+    private void readInput(input, OutputStream outputStream) {
             switch (input) {
+                case null:
+                    return
                 case InputStream:
                     ByteStreams.copy(input as InputStream, outputStream)
                     break
@@ -78,13 +91,11 @@ class ExternalCommand {
                 default:
                     throw new IllegalArgumentException("Don't know how to read process input from '${input}'")
             }
-        }
     }
 
-    private Thread outThread(output, InputStream inputStream) {
-        return Thread.start {
-            switch (output) {
-                case StringBuffer:
+    private void writeOutput(output, InputStream inputStream) {
+        switch (output) {
+            case StringBuffer:
                     StringBuffer buffer = (StringBuffer) output
                     inputStream.eachLine { String line ->
                         buffer << line << "\n"
@@ -99,10 +110,10 @@ class ExternalCommand {
                 default:
                     throw new IllegalArgumentException("Don't know how to add process output to '${output}'")
             }
-        }
     }
 
     private static String[] path = System.getenv('PATH').split(File.pathSeparator)
+
     /**
      * Find a binary on the PATH and if not there look for the first
      * suggestion that exist.
@@ -124,6 +135,12 @@ class ExternalCommand {
             }
         }
         return file?.path
+    }
+
+    String formatCmdForLogging(Iterable<String> cmd) {
+        cmd.collect {
+            sensitiveData.contains(it) ? '****' : it
+        }.join(' ')
     }
 
 }

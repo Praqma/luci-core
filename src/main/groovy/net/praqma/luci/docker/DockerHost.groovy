@@ -150,5 +150,7 @@ trait DockerHost {
         return this
     }
 
-
+    String getStatus() {
+        return ''
+    }
 }

@@ -26,6 +26,9 @@ class DockerMachineFactory {
     /** Execute docker-machine create with debug flag? */
     boolean debug = false
 
+    /** Log the command executed */
+    boolean logCommand = false
+
     Map<String, String> bindings = [:]
 
     DockerMachineFactory(String name) {
@@ -47,34 +50,24 @@ class DockerMachineFactory {
      * @return
      */
     @VisibleForTesting
-    List<String> commandLine(String machineName, boolean hideSensitiveData = false) {
-        Map<String, String> binds = [ name: machineName ]
-        binds.putAll(bindings)
-        TemplateEngine engine = new SimpleTemplateEngine()
-        def x = { String input -> engine.createTemplate(input).make(binds).toString() }
-
+    List<String> commandLine(String machineName) {
         List<String> cmd = ['docker-machine']
         if (debug) cmd << '--debug'
         cmd << 'create'
         Map<String, String> optionMap = buildCompleteOptionsMap()
-        if (hideSensitiveData) {
-            optionMap.keySet().each { String key ->
-                // Assume that data is sensitive if key contains the string 'password'
-                if (key.contains('password')) optionMap[key] = "xxxxxxxx"
-            }
-        }
-        cmd.addAll(optionMap.collect { key, value -> ["--${key}".toString(), x(value)] }.flatten())
-        createArgs.each { String arg ->
-            assert arg != null
-            cmd << x(arg)
-        }
+        cmd.addAll(optionMap.collect { key, value -> ["--${key}".toString(), value] }.flatten())
+        cmd.addAll(createArgs)
+        cmd = bindPlaceholders(cmd, machineName)
         return cmd
     }
 
     DockerHost getOrCreate(String machineName) {
         StringBuffer err = "" << ""
         println "Creating machine: '${machineName}'"
-        int rc = new ExternalCommand().execute(*commandLine(machineName), err: err)
+        ExternalCommand ec = new ExternalCommand()
+        ec.sensitiveData = sensitiveData()
+
+        int rc = ec.execute(*commandLine(machineName), err: err, log: logCommand)
         if (rc == 0) {
             return new DockerMachineHost(machineName)
         } else {
@@ -90,4 +83,21 @@ class DockerMachineFactory {
         return answer
     }
 
+    Collection<String> sensitiveData(Map<String, String> optionMap = null) {
+        if (optionMap == null) optionMap = buildCompleteOptionsMap()
+        List<String> list = optionMap.keySet().findAll { String key ->
+            // Assume that data is sensitive if key contains the string 'password'
+            key.contains('password')
+        }.collect { String key -> optionMap[key] }
+        return bindPlaceholders(list, '#name#')
+    }
+
+    private List<String> bindPlaceholders(List<String> list, String machineName) {
+        Map<String, String> binds = [ name: machineName ]
+        binds.putAll(bindings)
+        TemplateEngine engine = new SimpleTemplateEngine()
+        def x = { String input -> engine.createTemplate(input).make(binds).toString() }
+
+        return list.collect { x(it) }
+    }
 }
