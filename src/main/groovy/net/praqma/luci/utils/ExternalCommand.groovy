@@ -4,7 +4,6 @@ import com.google.common.io.ByteStreams
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovyx.gpars.GParsPool
-import groovyx.gpars.dataflow.Promise
 import net.praqma.luci.docker.DockerHost
 
 import java.util.concurrent.Future
@@ -79,36 +78,36 @@ class ExternalCommand {
 
 
     private void readInput(input, OutputStream outputStream) {
-            switch (input) {
-                case null:
-                    return
-                case InputStream:
-                    ByteStreams.copy(input as InputStream, outputStream)
-                    break
-                case Closure:
-                    (input as Closure)(outputStream)
-                    break
-                default:
-                    throw new IllegalArgumentException("Don't know how to read process input from '${input}'")
-            }
+        switch (input) {
+            case null:
+                return
+            case InputStream:
+                ByteStreams.copy(input as InputStream, outputStream)
+                break
+            case Closure:
+                (input as Closure)(outputStream)
+                break
+            default:
+                throw new IllegalArgumentException("Don't know how to read process input from '${input}'")
+        }
     }
 
     private void writeOutput(output, InputStream inputStream) {
         switch (output) {
             case StringBuffer:
-                    StringBuffer buffer = (StringBuffer) output
-                    inputStream.eachLine { String line ->
-                        buffer << line << "\n"
-                    }
-                    break
-                case OutputStream:
-                    ByteStreams.copy(inputStream, output as OutputStream)
-                    break
-                case Closure:
-                    (output as Closure)(inputStream)
-                    break
-                default:
-                    throw new IllegalArgumentException("Don't know how to add process output to '${output}'")
+                StringBuffer buffer = (StringBuffer) output
+                inputStream.eachLine { String line ->
+                    buffer << line << "\n"
+                }
+                break
+            case OutputStream:
+                ByteStreams.copy(inputStream, output as OutputStream)
+                break
+            case Closure:
+                (output as Closure)(inputStream)
+                break
+            default:
+                throw new IllegalArgumentException("Don't know how to add process output to '${output}'")
             }
     }
 

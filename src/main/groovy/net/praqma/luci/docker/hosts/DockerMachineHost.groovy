@@ -31,6 +31,7 @@ class DockerMachineHost implements DockerHost {
         StringBuffer out = "" << ""
         StringBuffer err = "" << ""
         int rc = ec.execute('docker-machine', 'env', machineName, out: out, err: err)
+        String stdout = out.toString()
         if (rc != 0) {
             String errString = err.toString()
             if (factory != null && errString.contains("Host does not exist")) {
@@ -50,7 +51,7 @@ class DockerMachineHost implements DockerHost {
                 throw new RuntimeException(err.toString())
             }
         }
-        DockerHost dh = DockerHostImpl.fromEnvVarsString(out.toString()).orig("machine: ${machineName}")
+        DockerHost dh = DockerHostImpl.fromEnvVarsString(stdout).orig("machine: ${machineName}")
         initFrom(dh)
         println "Initialized docker host '${this}"
     }
