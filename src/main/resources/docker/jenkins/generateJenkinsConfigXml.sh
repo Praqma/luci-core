@@ -14,7 +14,7 @@ cat  << EOF
   <disabledAdministrativeMonitors/>
   <version>1.609.1</version>
   <numExecutors>$executors</numExecutors>
-  <mode>NORMAL</mode>
+  <mode>EXCLUSIVE</mode>
   <useSecurity>true</useSecurity>
   <authorizationStrategy class="hudson.security.AuthorizationStrategy\$Unsecured"/>
   <securityRealm class="hudson.security.SecurityRealm\$None"/>
@@ -107,7 +107,7 @@ cat << EOF
   </views>
   <primaryView>All</primaryView>
   <slaveAgentPort>$slaveAgentPort</slaveAgentPort>
-  <label></label>
+  <label>master</label>
   <nodeProperties/>
   <globalNodeProperties/>
 </hudson>
