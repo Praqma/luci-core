@@ -103,7 +103,9 @@ class LuciboxModel {
     private Map buildYamlMap(Containers containers) {
         Map m = [:]
         serviceMap.each { String s, BaseServiceModel model ->
-            m[s] = model.buildComposeMap(containers)
+            if (!(model instanceof AuxServiceModel)) {
+                m[s] = model.buildComposeMap(containers)
+            }
         }
         if (socatForTlsHackPort && dockerHost.tls) {
             m['dockerHttp'] = [
@@ -146,6 +148,13 @@ class LuciboxModel {
         return new File(workDir, 'docker-compose.yml')
     }
 
+    /**
+     * Called before starting the box.
+     * <p>
+     * This should not start any containers, but can create (data) containers
+     *
+     * @return
+     */
     Containers preStart() {
         Containers containers = new Containers(this)
 
