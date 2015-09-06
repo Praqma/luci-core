@@ -3,8 +3,10 @@ package scripts
 import jenkins.model.*
 import hudson.model.*
 import hudson.tasks.*
-import javaposse.jobdsl.plugin.*
 import hudson.model.labels.*
+import javaposse.jobdsl.plugin.*
+import org.jvnet.hudson.plugins.triggers.startup.*
+
 assert System.getenv('LUCI_SEED_JOB_NAME')
 String seedJobName = System.getenv('LUCI_SEED_JOB_NAME')
 
@@ -31,6 +33,10 @@ boolean ignoreExisting = false
 RemovedJobAction removedJobAction = RemovedJobAction.IGNORE
 
 project.buildersList.add(new ExecuteDslScripts(scriptLocation, ignoreExisting, removedJobAction))
+
+// Add trigger to run when Jenkins starts
+
+project.addTrigger(new HudsonStartupTrigger('master', null))
 
 
 println "LUCI: Seed job created"
