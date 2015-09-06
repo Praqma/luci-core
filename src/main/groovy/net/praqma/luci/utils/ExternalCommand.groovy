@@ -73,6 +73,9 @@ class ExternalCommand {
         if (mapArgs.log) {
             println "CMD: ${cmdFormatted}, exit value: ${exitValue}"
         }
+        if (exitValue != 0 && mapArgs.foe) { // foe: Fail on Error
+            throw new RuntimeException("Cmd failed, exitCode: ${exitValue}, cmd: ${formatCmdForLogging(cmd.toList())}")
+        }
         return exitValue
     }
 
