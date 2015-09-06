@@ -34,6 +34,7 @@ abstract class BaseServiceModel {
         Map answer = [
                 image         : dockerImage,
                 extra_hosts   : [lucibox: box.dockerHost.host],
+                environment   : [:],
                 container_name: containerName,
                 volumes_from  : volumes_from,
                 labels        : [(ContainerInfo.BOX_NAME_LABEL)          : box.name,
