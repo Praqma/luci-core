@@ -19,9 +19,10 @@ class DockerMachineFactory {
      */
     List<String> createArgs = ['$name']
 
+    /**
+     * And option 'foo' with value 'bar' will add '--foo bar' to the docker-machine command executed
+     */
     Map<String, String> options = [:]
-
-    String driver
 
     /** Execute docker-machine create with debug flag? */
     boolean debug = false
@@ -29,18 +30,44 @@ class DockerMachineFactory {
     /** Log the command executed */
     boolean logCommand = false
 
+    /**
+     * Bindings used when option values are expanded
+     */
     Map<String, String> bindings = [:]
+
+    /**
+     * Mapping a property to an option.
+     */
+    private Map<String, String> prop2opts = [:]
+
 
     DockerMachineFactory(String name) {
         this.name = name
+        addProperty 'driver', 'driver'
     }
 
     void options(Map<String, String> opts) {
         options.putAll(opts)
     }
 
-    void driver(String driver) {
-        this.driver = driver
+    /**
+     * Add a property 'prop' that will define the option 'opt'
+     * <p>
+     * In other words a getter and setter for 'prop' is added to this
+     * objecgt that will store the value in the 'options' map under the
+     * key 'opt'
+     *
+     * @param prop
+     * @param opt
+     */
+    private void addProperty(String prop, String opt) {
+        DockerMachineFactory me = this
+        me.metaClass["set${prop.capitalize()}"] = { String value ->
+            options[opt] = value
+        }
+        me.metaClass["get${prop.capitalize()}"] = { ->
+            return options[opt]
+        }
     }
 
     /**

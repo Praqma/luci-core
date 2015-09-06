@@ -43,8 +43,8 @@ class DockerMachineFactoryTest {
     void testLookupFunction() {
         DockerMachineFactory f = new DockerMachineFactory()
         // Create a binding to a function
-        f.bindings.lookup = { key ->
-            [ one: '1', two: '2'][key] ?: { throw new RuntimeException("${key} is not defined")}()
+        f.bindings.lookup = { key, defaultValue = null ->
+            [ one: '1', two: '2'][key] ?: defaultValue ?: { throw new RuntimeException("${key} is not defined")}()
         }
         f.options x: '${lookup("one")}'
         assert f.commandLine('mach') == ['docker-machine', 'create', '--x', '1', 'mach']
