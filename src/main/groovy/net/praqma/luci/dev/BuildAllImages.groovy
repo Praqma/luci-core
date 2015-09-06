@@ -49,11 +49,7 @@ class BuildAllImages {
         // Mapping (full) image name to the exit code for the build of that imag
         // The Dataflows are key by the full name of the image
         Dataflows buildResults = new Dataflows()
-        // 'none' is speciel for no luci base image.
-        // Set build result for 'none' to 0, so build begins for images that doesn't depend on luci images
-        buildResults['none'] = 0
-
-        Collection<Integer> rcs = GParsPool.withPool(images.size()) {
+        Collection<Integer> rcs = GParsPool.withPool(20) {
             // Collect images to the exit code for building it
             images.collectParallel { DockerImage image ->
                 String baseImage = image.baseImage
@@ -66,7 +62,8 @@ class BuildAllImages {
                     baseImage = 'none'
                 }
                 try {
-                    if (buildResults[baseImage] == 0) { // Will block until build result is ready
+                    println "${image.fullImageName} waiting for ${baseImage}"
+                    if (baseImage == 'none' || buildResults[baseImage] == 0) { // Will block until build result is ready
                         println "Building image ${image.fullImageName} with base ${baseImage}"
                         rc = image.build(dockerHost)
                     } else {
