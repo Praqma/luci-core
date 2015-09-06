@@ -54,10 +54,14 @@ class Containers {
     Container jenkinsConfig(JenkinsModel jenkins) {
         DockerHost host = jenkins.dockerHost
         String jenkinsHome = '/var/jenkins_home'
+        String jobDsl = '/luci/jenkins/jobDsl.d'
         return createNewContainer(host, 'jenkinsConfig', Images.DATA, ContainerKind.CACHE,
-                volumes: ["${jenkinsHome}/init.groovy.d"]) { Container con ->
+                volumes: ["${jenkinsHome}/init.groovy.d", "${jobDsl}"]) { Container con ->
             jenkins.initFiles.each { File file ->
-                new ExternalCommand(host).execute('docker', 'cp', file.path, "${con.name}:/${jenkinsHome}/init.groovy.d")
+                new ExternalCommand(host).execute('docker', 'cp', file.path, "${con.name}:/${jenkinsHome}/init.groovy.d", foe: true)
+            }
+            jenkins.seedJob.jobDslFiles.each { File file ->
+                new ExternalCommand(host).execute('docker', 'cp', file.path, "${con.name}:/${jobDsl}", foe: true)
             }
 
         }

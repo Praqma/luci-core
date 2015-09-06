@@ -23,8 +23,7 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
 
     private Collection<File> initFiles = []
 
-    @Lazy
-    JenkinsSeedJob seedJob = new JenkinsSeedJob()
+    JenkinsSeedJobModel seedJob = new JenkinsSeedJobModel()
 
     /**
      * Map plugin key to version
@@ -96,6 +95,9 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
         if (pluginMap.size() > 0) {
             map.command << '-p' << pluginMap.collect { key, version -> "${key}:${version}" }.join(' ')
         }
+        if (seedJob.name) {
+            map.environment << [LUCI_SEED_JOB_NAME: seedJob.name]
+        }
         map.command << '--' << '--prefix=/jenkins'
         map.ports = ["${slaveAgentPort}:${slaveAgentPort}" as String] // for slave connections
         //map.ports << '10080:8080' // Enter container without nginx, for debug
@@ -138,6 +140,11 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
         staticSlaves.values()*.prepare()
         actions.each { it() }
         initFiles(new ClasspathResources(JenkinsModel.classLoader).resourceAsFile('scripts/luci-init.g', 'luci-init.groovy') as File)
+
+        seedJob.validate()
+        if (seedJob.name) {
+            initFiles(new ClasspathResources(JenkinsModel.classLoader).resourceAsFile('scripts/luci-jobdsl.g', 'luci-jobdsl.groovy') as File)
+        }
     }
 
     @Override
@@ -164,7 +171,35 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
     }
 }
 
-class JenkinsSeedJob {
+@CompileStatic
+class JenkinsSeedJobModel {
     String name
-    File jobDslFile
+
+    private Collection<File> jobDslFiles = []
+
+    Collection<File> getJobsDslsFiles() {
+        return this.jobDslFiles
+    }
+
+    void jobDslFiles(File...files) {
+        jobDslFiles(files.toList())
+    }
+
+    @CompileDynamic
+    void jobDslFiles(Iterable<File> files) {
+        jobDslFiles.addAll(files as List)
+    }
+
+    /**
+     * Validate the configuration of the model.
+     * <p>
+     * Throw an exception if it is not valid
+     */
+    void validate() {
+        if (jobDslFiles) {
+            if (!name) {
+                throw new RuntimeException("Seed job is configured, without having been given a name")
+            }
+        }
+    }
 }
