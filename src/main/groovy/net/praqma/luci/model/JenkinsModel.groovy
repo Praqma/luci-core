@@ -12,8 +12,10 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
 
     int slaveAgentPort = -1 // -1 => Let LUCI assign port
 
-    /** Number of executors for master */
-    int executors = 0
+    /**
+     * Number of executors for master. JobDsl needs to run on master so default is one.
+     */
+    int executors = 1
 
     private Map<String, StaticSlaveModel> staticSlaves = [:]
 
