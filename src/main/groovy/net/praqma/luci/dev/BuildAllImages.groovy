@@ -88,9 +88,10 @@ class BuildAllImages {
     }
 
     static void main(String[] args) {
-        assert args.size() == 1
+        assert args.size() == 1 || args.size() == 2
 
-        boolean doPush = false
+        File dir = new File(args[0])
+        boolean doPush = args.size() > 1 ? Boolean.parseBoolean(args[1]) : false
         DockerHost host = DockerHostImpl.default
         boolean success = new BuildAllImages(new File(args[0], 'docker')).build(host, doPush)
 
