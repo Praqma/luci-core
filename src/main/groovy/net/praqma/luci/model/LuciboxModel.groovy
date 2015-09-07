@@ -27,7 +27,7 @@ class LuciboxModel {
      *
      * The value can be overridden for specific containers
      */
-    boolean useDataContainer = false
+    boolean useDataContainer = true
 
     /** Port on web frontend (nginx) */
     int port = 80
