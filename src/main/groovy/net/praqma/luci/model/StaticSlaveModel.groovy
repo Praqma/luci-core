@@ -28,7 +28,7 @@ class StaticSlaveModel extends BaseServiceModel implements AuxServiceModel {
         super.addToComposeMap(map, containers)
         map.image = dockerImage
         map.links = ["${ServiceEnum.WEBFRONTEND.name}:nginx" as String, "${ServiceEnum.JENKINS.name}:master" as String]
-        map.command = ['sh', '/luci/data/jenkinsSlave/slaveConnect.sh', slaveName]
+        map.command = ['sh', '/luci/data/jenkinsSlave/slaveConnect.sh', slaveName, box.port]
         map.volumes_from = [containers.jenkinsSlave(dockerHost).name]
     }
 
