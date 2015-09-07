@@ -7,8 +7,7 @@ apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
 group = 'net.praqma.luci'
-version = '0.4'
-
+version = '0.4.1'
 repositories {
     jcenter()
 }
@@ -23,7 +22,7 @@ task extractDockerImages(type: Copy) {
 task buildAllImages(type: JavaExec) {
     dependsOn extractDockerImages
     main 'net.praqma.luci.dev.BuildAllImages'
-    args extractDockerImages.destinationDir
+    args extractDockerImages.destinationDir, "${System.properties['luci.push']}"
     classpath { sourceSets.main.runtimeClasspath.asPath }
 }
 
