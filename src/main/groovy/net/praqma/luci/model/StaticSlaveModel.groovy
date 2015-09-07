@@ -1,5 +1,6 @@
 package net.praqma.luci.model
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import net.praqma.luci.docker.Containers
 
@@ -23,13 +24,14 @@ class StaticSlaveModel extends BaseServiceModel implements AuxServiceModel {
     }
 
     @Override
+    @CompileDynamic
     void addToComposeMap(Map map, Containers containers) {
         assert box != null
         super.addToComposeMap(map, containers)
         map.image = dockerImage
         map.links = ["${ServiceEnum.WEBFRONTEND.name}:nginx" as String, "${ServiceEnum.JENKINS.name}:master" as String]
         map.command = ['sh', '/luci/data/jenkinsSlave/slaveConnect.sh', slaveName, box.port]
-        map.volumes_from = [containers.jenkinsSlave(dockerHost).name]
+        map.volumes_from << containers.jenkinsSlave(dockerHost).name
     }
 
 }
