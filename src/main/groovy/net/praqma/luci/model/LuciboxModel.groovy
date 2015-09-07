@@ -42,7 +42,7 @@ class LuciboxModel {
     Integer socatForTlsHackPort = null
 
     /** All hosts where this lucibox is having containers */
-    private Collection<DockerHost> allHosts = [] as Set
+    private Collection<DockerHost> allHosts = ([] as Set).asSynchronized()
 
     LuciboxModel(String name) {
         this.name = name
@@ -51,6 +51,7 @@ class LuciboxModel {
 
     void addHost(DockerHost host) {
         if (host != null) allHosts << host
+        assert allHosts.every { it != null }
     }
 
     BaseServiceModel getService(ServiceEnum service) {
@@ -133,15 +134,24 @@ class LuciboxModel {
         println "Initilizing Lucibox: '${name}'"
         this.workDir = workDir ?: Files.createTempDir()
         this.workDir.mkdirs()
-        allHosts << dockerHost
+        if (dockerHost != null) allHosts << dockerHost
+        assert allHosts.every { it != null }
         serviceMap.values().each { it.prepare() }
     }
 
     @CompileDynamic
-    void initializedHosts() {
+    void initializeHosts() {
+        assert allHosts.every { it != null }
+        def hosts = allHosts
+        // TODO if allHosts not assigned to local variable allHosts contains an extra null value
+        // in withPool block?!? I believe it happens when the lucibox has no defined docker host
         GParsPool.withPool {
-            allHosts.eachParallel { DockerHost h -> h.initialize() }
+            hosts.eachParallel { DockerHost h ->
+                assert h != null
+                h.initialize()
+            }
         }
+        assert allHosts.every { it != null }
     }
 
     private File getDockerComposeFile() {
@@ -156,6 +166,9 @@ class LuciboxModel {
      * @return
      */
     Containers preStart() {
+        if (dockerHost == null) {
+            throw new RuntimeException("No docker host defined for '${name}'")
+        }
         Containers containers = new Containers(this)
 
         serviceMap.values().each { it.preStart(this, containers) }
@@ -219,7 +232,7 @@ class LuciboxModel {
      * That is stop and remove all service containers.
      */
     void takeDown() {
-        initializedHosts()
+        initializeHosts()
         removeContainers(ContainerKind.SERVICE)
     }
 
@@ -229,7 +242,7 @@ class LuciboxModel {
      * Stop and remove all containers (including data containers) related to this Lucibox.
      */
     void destroy() {
-        initializedHosts()
+        initializeHosts()
         removeContainers()
     }
 
