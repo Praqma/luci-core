@@ -73,7 +73,7 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
         String url = "http://${h.host}:${h.port}"
         map.command = ['-d', containers.jenkinsSlave(dockerHost).name,
                        '-c', "http://${h.host}:${cloudPort()}" as String,
-                       '-j', "http://${h.host}:${box.port}/jenkins" as String,
+                       '-j', "http://${h.host}:${box.port}/jenkins/" as String,
                        '-e', 'luci@praqma.net',
                        '-x', executors as String,
                        '-a', slaveAgentPort as String]
@@ -110,7 +110,7 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
     void seedJob(Closure config) {
         seedJob.with config
     }
-    
+
     void staticSlave(String slaveName, Closure closure) {
         StaticSlaveModel slave = new StaticSlaveModel()
         slave.slaveName = slaveName
