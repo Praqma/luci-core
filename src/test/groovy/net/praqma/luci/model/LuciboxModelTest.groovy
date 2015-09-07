@@ -1,6 +1,5 @@
 package net.praqma.luci.model
 
-import com.google.common.io.Files
 import net.praqma.luci.docker.DockerHost
 import net.praqma.luci.test.TestDockerHosts
 import org.junit.Test

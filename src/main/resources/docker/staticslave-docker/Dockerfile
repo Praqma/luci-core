@@ -1,4 +1,4 @@
-FROM luci/staticslave-base:0.3
+FROM luci/staticslave-javatools:0.3
 
 ENV DOCKER_VERSION=1.8.1 \
     DOCKER_MACHINE_VERSION=0.4.1 \
