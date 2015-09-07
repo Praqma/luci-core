@@ -107,6 +107,10 @@ class JenkinsModel extends BaseServiceModel implements WebfrontendService {
                 containers.jenkinsConfig(this).name
     }
 
+    void seedJob(Closure config) {
+        seedJob.with config
+    }
+    
     void staticSlave(String slaveName, Closure closure) {
         StaticSlaveModel slave = new StaticSlaveModel()
         slave.slaveName = slaveName
