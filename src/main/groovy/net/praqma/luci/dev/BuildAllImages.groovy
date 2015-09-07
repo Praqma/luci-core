@@ -49,14 +49,16 @@ class BuildAllImages {
         // Mapping (full) image name to the exit code for the build of that imag
         // The Dataflows are key by the full name of the image
         Dataflows buildResults = new Dataflows()
-        Collection<Integer> rcs = GParsPool.withPool(20) {
+        Collection<Integer> rcs = GParsPool.withPool(40) {
             // Collect images to the exit code for building it
             images.collectParallel { DockerImage image ->
                 String baseImage = image.baseImage
                 int rc = 1 // set non-zero to indicate error until we have successful build
                 if (baseImage.startsWith('luci/')) {
                     if (!imageNames.contains(baseImage)) {
-                        println "WARNING: '${image.name}' has base '${baseImage}' which is not part of build. Did you forget to update version?"
+                        println "******************\n******** WARNING: '${image.name}' has base '${baseImage}' which is not part of build. Did you forget to update version?"
+                        // Set rc to 0 you build doesn't wait
+                        buildResults[baseImage] = 0
                     }
                 } else {
                     baseImage = 'none'
