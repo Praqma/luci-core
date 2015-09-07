@@ -67,7 +67,7 @@ abstract class BaseServiceModel {
      * @param context
      */
     void preStart(LuciboxModel box, Containers containers) {
-
+        getDockerHost() != null
     }
 
     DockerHost getDockerHost() {
