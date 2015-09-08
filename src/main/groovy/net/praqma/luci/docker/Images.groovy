@@ -25,14 +25,15 @@ enum Images {
         this.imageString = ensureVersion(imageString)
     }
 
-    private static Map<String, String> m
+    static Collection<String> getAllNames() {
+        return versionMap.collect { String key, String version -> "${key}:${version}"}
+    }
 
     private static String ensureVersion(String imageString) {
         String prefix = 'luci/'
-        if (m == null) m = versionMap()
         if (imageString.startsWith(prefix)) {
             if (imageString.indexOf(':') == -1) {
-                String version = m[imageString.substring(prefix.length())]
+                String version = versionMap[imageString.substring(prefix.length())]
                 if (version == null) {
                     throw new RuntimeException("No version defined for '${imageString}")
                 }
@@ -42,15 +43,20 @@ enum Images {
         return imageString
     }
 
-    private static Map<String, String> versionMap() {
-        String resource = 'docker/imageVersions.properties'
-        InputStream stream = Images.classLoader.getResourceAsStream(resource)
-        if (stream == null) {
-            throw new RuntimeException("Luci: Internal error: Could not read image versions from ${resource}")
+    private static Map<String, String> m
+
+    private synchronized static Map<String, String> getVersionMap() {
+        if (m == null) {
+            String resource = 'docker/imageVersions.properties'
+            InputStream stream = Images.classLoader.getResourceAsStream(resource)
+            if (stream == null) {
+                throw new RuntimeException("Luci: Internal error: Could not read image versions from ${resource}")
+            }
+            Properties answer = new Properties()
+            answer.load(stream)
+            m = answer
         }
-        Properties answer = new Properties()
-        answer.load(stream)
-        return answer
+        return m
     }
 
 }
