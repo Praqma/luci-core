@@ -1,6 +1,7 @@
 package net.praqma.luci.docker
 
 import groovy.transform.CompileDynamic
+import groovyx.gpars.GParsPool
 import net.praqma.luci.model.LuciboxModel
 import net.praqma.luci.utils.ExternalCommand
 
@@ -135,6 +136,14 @@ trait DockerHost {
 
     void initialize() {
         isInitialized = true
+    }
+
+    void pullLuciImages() {
+        GParsPool.withPool(5) {
+            Images.allNames.eachParallel {
+                new ExternalCommand(this).start([:], 'docker', 'pull', it)
+            }
+        }
     }
 
     void initFrom(DockerHost dh) {
