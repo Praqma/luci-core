@@ -27,8 +27,7 @@ class ExternalCommand {
         return execute([:], *cmd)
     }
 
-    @CompileDynamic
-    int execute(Map mapArgs, String... cmd) {
+    Process start(Map mapArgs, String...cmd) {
         assert cmd.findAll { it == null }.empty
         String c = Binary.known[cmd[0]]?.executable
         if (c) {
@@ -55,7 +54,12 @@ class ExternalCommand {
         }
 
         Process process = pb.start()
+        return process
+    }
 
+    @CompileDynamic
+    int execute(Map mapArgs, String... cmd) {
+        Process process = start(mapArgs, *cmd)
         GParsPool.withPool(2) {
             // Handle stdin and stderr async
             Future stdin = { -> readInput(mapArgs.in != null ? mapArgs.in : null, process.outputStream) }.callAsync()
