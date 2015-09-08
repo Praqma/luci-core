@@ -145,7 +145,7 @@ class LuciboxModel {
         def hosts = allHosts
         // TODO if allHosts not assigned to local variable allHosts contains an extra null value
         // in withPool block?!? I believe it happens when the lucibox has no defined docker host
-        GParsPool.withPool {
+        GParsPool.withPool(10) {
             hosts.eachParallel { DockerHost h ->
                 assert h != null
                 h.initialize()
