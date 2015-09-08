@@ -24,6 +24,7 @@ COPY addPlugin.sh /luci/bin/
 RUN /luci/bin/addPlugin.sh ssh-slaves:1.10 durable-task:1.6 token-macro:1.10 docker-plugin:0.12.1 parameterized-trigger:2.28 mailer:1.15
 RUN /luci/bin/addPlugin.sh scm-api:0.2 promoted-builds:2.21 matrix-project:1.6 git-client:1.19.0 ssh-credentials:1.11 credentials:1.22
 RUN /luci/bin/addPlugin.sh git:2.4.0 cloudbees-folder:4.9 vsphere-cloud:2.6 config-file-provider:2.8.1 job-dsl:1.37 startup-trigger-plugin:2.4
+RUN /luci/bin/addPlugin.sh extra-columns:1.15 claim:2.7 build-node-column:0.1 categorized-view:1.8 robot:1.6.1 custom-job-icon:0.2
 
 COPY credentials.xml /usr/share/jenkins/ref/
 
