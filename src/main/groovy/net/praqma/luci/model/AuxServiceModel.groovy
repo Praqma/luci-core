@@ -19,6 +19,9 @@ trait AuxServiceModel {
 
     void startService(Containers containers) {
         BaseServiceModel me = this
+        if (me.dockerImage == null) {
+            throw new RuntimeException("No image defined for ${this}")
+        }
         def map = prepareService(containers)
         List<String> startCmd = ['docker', 'run', '-d']
         map.ports.each {
